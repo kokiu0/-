@@ -2,41 +2,100 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>一点読みバトルAI</title>
+<title>一点読みバトル</title>
 
 <style>
+
 body{
-background:#111;
+background:#050505;
 color:white;
 font-family:sans-serif;
 text-align:center;
+overflow-x:hidden;
 }
 
-#battle{
-font-size:28px;
-margin:20px;
-height:60px;
+h1{
+letter-spacing:3px;
+}
+
+#arena{
+font-size:60px;
+margin:40px;
+transition:0.2s;
 }
 
 button{
-padding:10px 18px;
-margin:5px;
+padding:12px 20px;
+margin:6px;
 font-size:16px;
 cursor:pointer;
+background:#222;
+color:white;
+border:1px solid #555;
+}
+
+button:hover{
+background:#444;
 }
 
 #log{
 margin-top:20px;
-max-height:200px;
+height:200px;
 overflow:auto;
-border:1px solid #444;
+border:1px solid #333;
 padding:10px;
 }
 
 .hp{
-font-size:20px;
+font-size:22px;
 margin:10px;
 }
+
+/* カットイン */
+
+#cutin{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:80px;
+font-weight:bold;
+color:white;
+pointer-events:none;
+opacity:0;
+transition:0.3s;
+z-index:999;
+}
+
+.win{
+background:linear-gradient(90deg,#00f,#0ff);
+}
+
+.dead{
+background:linear-gradient(90deg,#900,#f00);
+}
+
+.show{
+opacity:0.9;
+}
+
+.flash{
+animation:flash 0.2s;
+}
+
+@keyframes flash{
+0%{background:white}
+100%{background:#050505}
+}
+
+.hit{
+transform:scale(1.2);
+}
+
 </style>
 </head>
 
@@ -44,85 +103,74 @@ margin:10px;
 
 <h1>一点読みバトル</h1>
 
-<div class="hp">プレイヤーHP: <span id="php">3</span></div>
+<div class="hp">HP : <span id="hp">3</span></div>
 
-<div id="battle">
-🤺　VS　👾
+<div id="arena">
+🤺　　　👾
 </div>
 
 <div>
-<button onclick="play('attack')">通常攻撃</button>
+
+<button onclick="play('attack')">攻撃</button>
 <button onclick="play('defense')">防御</button>
 <button onclick="play('evade')">回避</button>
 <button onclick="play('grab')">掴み</button>
-<button onclick="play('special')">必殺技</button>
+<button onclick="play('special')">必殺</button>
+
 </div>
 
 <h3>行動履歴</h3>
 <div id="log"></div>
 
+<div id="cutin"></div>
+
 <script>
 
-let playerHP = 3
+let hp = 3
 
-const actions = ["attack","defense","evade","grab","special"]
+const actions=["attack","defense","evade","grab","special"]
 
-const name = {
-attack:"通常攻撃",
+const name={
+attack:"攻撃",
 defense:"防御",
 evade:"回避",
 grab:"掴み",
-special:"必殺技"
+special:"必殺"
 }
 
-let playerHistory=[]
+let history=[]
 
 function enemyAI(){
 
-if(playerHistory.length<3){
-return randomMove()
+if(history.length<3){
+return random()
 }
 
-let count={
-attack:0,
-defense:0,
-evade:0,
-grab:0,
-special:0
-}
+let count={attack:0,defense:0,evade:0,grab:0,special:0}
 
-playerHistory.forEach(a=>count[a]++)
+history.forEach(a=>count[a]++)
 
-let predicted = Object.keys(count).reduce((a,b)=>count[a]>count[b]?a:b)
+let predicted=Object.keys(count).reduce((a,b)=>count[a]>count[b]?a:b)
 
-return counterMove(predicted)
+return counter(predicted)
 
 }
 
-function counterMove(move){
+function counter(move){
 
 switch(move){
 
-case "attack":
-return "attack"
-
-case "defense":
-return "grab"
-
-case "evade":
-return "special"
-
-case "grab":
-return "attack"
-
-case "special":
-return "defense"
+case "attack": return "attack"
+case "defense": return "grab"
+case "evade": return "special"
+case "grab": return "attack"
+case "special": return "defense"
 
 }
 
 }
 
-function randomMove(){
+function random(){
 return actions[Math.floor(Math.random()*5)]
 }
 
@@ -159,56 +207,88 @@ return "dead"
 
 }
 
+function cutin(text,type){
+
+let c=document.getElementById("cutin")
+
+c.textContent=text
+c.className=type+" show"
+
+setTimeout(()=>{
+c.className=""
+},900)
+
+}
+
 function play(player){
 
-if(playerHP<=0)return
+if(hp<=0)return
 
-playerHistory.push(player)
+history.push(player)
 
-let enemy = enemyAI()
+let enemy=enemyAI()
 
-let result = judge(enemy,player)
+let result=judge(enemy,player)
 
-let battleText = "🤺 "+name[player]+"　VS　"+name[enemy]+" 👾"
+let arena=document.getElementById("arena")
 
-document.getElementById("battle").textContent=battleText
+arena.textContent="🤺 "+name[player]+"  VS  "+name[enemy]+" 👾"
 
-let log = document.getElementById("log")
+arena.classList.add("hit")
 
-let line = document.createElement("div")
+setTimeout(()=>arena.classList.remove("hit"),200)
+
+document.body.classList.add("flash")
+
+setTimeout(()=>document.body.classList.remove("flash"),100)
+
+let log=document.getElementById("log")
+
+let line=document.createElement("div")
 
 if(result==="win"){
 
-line.innerHTML="🔥 読み勝ち！即勝利！"
+cutin("READ WIN","win")
+
+line.textContent="読み勝ち！"
+
 log.prepend(line)
 
 setTimeout(()=>{
 alert("YOU WIN")
 location.reload()
-},500)
+},900)
 
 return
+
 }
 
 if(result==="damage"){
-playerHP--
-line.innerHTML="💥 被弾 HP-1"
+hp--
+line.textContent="被弾 HP-1"
 }
 
 if(result==="dead"){
-playerHP=0
-line.innerHTML="☠ 即死"
+
+hp=0
+
+cutin("INSTANT DEATH","dead")
+
+line.textContent="即死"
+
 }
 
 log.prepend(line)
 
-document.getElementById("php").textContent=playerHP
+document.getElementById("hp").textContent=hp
 
-if(playerHP<=0){
+if(hp<=0){
+
 setTimeout(()=>{
 alert("YOU LOSE")
 location.reload()
-},500)
+},900)
+
 }
 
 }
