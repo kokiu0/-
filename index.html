@@ -18,8 +18,13 @@ h1{
 letter-spacing:3px;
 }
 
+.hp{
+font-size:22px;
+margin:10px;
+}
+
 #arena{
-font-size:60px;
+font-size:40px;
 margin:40px;
 transition:0.2s;
 }
@@ -46,11 +51,6 @@ border:1px solid #333;
 padding:10px;
 }
 
-.hp{
-font-size:22px;
-margin:10px;
-}
-
 /* カットイン */
 
 #cutin{
@@ -72,28 +72,56 @@ z-index:999;
 }
 
 .win{
-background:linear-gradient(90deg,#00f,#0ff);
+background:linear-gradient(90deg,#0066ff,#00ffff);
 }
 
 .dead{
-background:linear-gradient(90deg,#900,#f00);
+background:linear-gradient(90deg,#990000,#ff0000);
 }
 
 .show{
 opacity:0.9;
 }
 
-.flash{
-animation:flash 0.2s;
+/* シャキーン */
+
+#slash{
+position:fixed;
+top:-50%;
+left:-50%;
+width:200%;
+height:200%;
+background:linear-gradient(
+120deg,
+transparent 45%,
+rgba(255,255,255,0.9) 50%,
+transparent 55%
+);
+opacity:0;
+pointer-events:none;
+z-index:998;
 }
 
-@keyframes flash{
-0%{background:white}
-100%{background:#050505}
+.slashAnim{
+animation:slashMove 0.4s ease-out;
 }
 
-.hit{
-transform:scale(1.2);
+@keyframes slashMove{
+
+0%{
+transform:translateX(-100%) rotate(20deg);
+opacity:1;
+}
+
+70%{
+opacity:1;
+}
+
+100%{
+transform:translateX(100%) rotate(20deg);
+opacity:0;
+}
+
 }
 
 </style>
@@ -123,10 +151,11 @@ transform:scale(1.2);
 <div id="log"></div>
 
 <div id="cutin"></div>
+<div id="slash"></div>
 
 <script>
 
-let hp = 3
+let hp=3
 
 const actions=["attack","defense","evade","grab","special"]
 
@@ -140,20 +169,8 @@ special:"必殺"
 
 let history=[]
 
-function enemyAI(){
-
-if(history.length<3){
-return random()
-}
-
-let count={attack:0,defense:0,evade:0,grab:0,special:0}
-
-history.forEach(a=>count[a]++)
-
-let predicted=Object.keys(count).reduce((a,b)=>count[a]>count[b]?a:b)
-
-return counter(predicted)
-
+function random(){
+return actions[Math.floor(Math.random()*5)]
 }
 
 function counter(move){
@@ -170,8 +187,22 @@ case "special": return "defense"
 
 }
 
-function random(){
-return actions[Math.floor(Math.random()*5)]
+function enemyAI(){
+
+if(history.length<3){
+return random()
+}
+
+let count={
+attack:0,defense:0,evade:0,grab:0,special:0
+}
+
+history.forEach(a=>count[a]++)
+
+let predicted=Object.keys(count).reduce((a,b)=>count[a]>count[b]?a:b)
+
+return counter(predicted)
+
 }
 
 function judge(enemy,player){
@@ -207,6 +238,18 @@ return "dead"
 
 }
 
+function slash(){
+
+let s=document.getElementById("slash")
+
+s.classList.add("slashAnim")
+
+setTimeout(()=>{
+s.classList.remove("slashAnim")
+},400)
+
+}
+
 function cutin(text,type){
 
 let c=document.getElementById("cutin")
@@ -234,20 +277,13 @@ let arena=document.getElementById("arena")
 
 arena.textContent="🤺 "+name[player]+"  VS  "+name[enemy]+" 👾"
 
-arena.classList.add("hit")
-
-setTimeout(()=>arena.classList.remove("hit"),200)
-
-document.body.classList.add("flash")
-
-setTimeout(()=>document.body.classList.remove("flash"),100)
-
 let log=document.getElementById("log")
 
 let line=document.createElement("div")
 
 if(result==="win"){
 
+slash()
 cutin("READ WIN","win")
 
 line.textContent="読み勝ち！"
@@ -272,6 +308,7 @@ if(result==="dead"){
 
 hp=0
 
+slash()
 cutin("INSTANT DEATH","dead")
 
 line.textContent="即死"
