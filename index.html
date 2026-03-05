@@ -167,29 +167,29 @@ animation:slowMotion 1s ease-out;
 
 <pre>
 敵：通常攻撃
-勝ち → 防御
-HP-1 → 回避
+勝ち → 防御　/　回避
+HP-1 → 通常攻撃
 即死 → 掴み / 必殺
 
 敵：防御
 勝ち → 掴み
 HP-1 → 防御 / 回避
-即死 → 攻撃 / 必殺
+即死 → 通常攻撃 / 必殺
 
 敵：回避
 勝ち → 必殺
 HP-1 → 防御 / 回避 / 掴み
-即死 → 攻撃
+即死 → 通常攻撃
 
 敵：掴み
-勝ち → 攻撃 / 必殺
+勝ち → 通常攻撃 / 必殺
 HP-1 → 回避 / 掴み
 即死 → 防御
 
 敵：必殺
 勝ち → 防御
 HP-1 → 必殺
-即死 → 回避 / 攻撃 / 掴み
+即死 → 回避 / 通常攻撃 / 掴み
 </pre>
 
 <button onclick="startGame()">ゲーム開始</button>
@@ -281,9 +281,10 @@ function judge(enemy,player){
 switch(enemy){
 
 case "attack":
-if(player==="defense") return "win"
-if(player==="attack"||player==="evade") return "damage"
+if(player==="defense" || player==="evade") return "win"
+if(player==="attack") return "damage"
 return "dead"
+
 
 case "defense":
 if(player==="grab") return "win"
