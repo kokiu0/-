@@ -2,31 +2,40 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>一点読みバトル</title>
+<title>一点読みバトルAI</title>
+
 <style>
 body{
-    background:#111;
-    color:white;
-    font-family:sans-serif;
-    text-align:center;
+background:#111;
+color:white;
+font-family:sans-serif;
+text-align:center;
+}
+
+#battle{
+font-size:28px;
+margin:20px;
+height:60px;
 }
 
 button{
-    padding:10px 20px;
-    margin:5px;
-    font-size:16px;
-    cursor:pointer;
+padding:10px 18px;
+margin:5px;
+font-size:16px;
+cursor:pointer;
 }
 
 #log{
-    margin-top:20px;
-    font-size:18px;
-    min-height:120px;
+margin-top:20px;
+max-height:200px;
+overflow:auto;
+border:1px solid #444;
+padding:10px;
 }
 
 .hp{
-    font-size:22px;
-    margin:10px;
+font-size:20px;
+margin:10px;
 }
 </style>
 </head>
@@ -35,8 +44,11 @@ button{
 
 <h1>一点読みバトル</h1>
 
-<div class="hp">プレイヤーHP: <span id="playerHP">3</span></div>
-<div class="hp">敵HP: <span id="enemyHP">3</span></div>
+<div class="hp">プレイヤーHP: <span id="php">3</span></div>
+
+<div id="battle">
+🤺　VS　👾
+</div>
 
 <div>
 <button onclick="play('attack')">通常攻撃</button>
@@ -46,12 +58,12 @@ button{
 <button onclick="play('special')">必殺技</button>
 </div>
 
+<h3>行動履歴</h3>
 <div id="log"></div>
 
 <script>
 
 let playerHP = 3
-let enemyHP = 3
 
 const actions = ["attack","defense","evade","grab","special"]
 
@@ -63,46 +75,55 @@ grab:"掴み",
 special:"必殺技"
 }
 
-function enemyMove(){
-return actions[Math.floor(Math.random()*actions.length)]
+let playerHistory=[]
+
+function enemyAI(){
+
+if(playerHistory.length<3){
+return randomMove()
 }
 
-function play(player){
-
-if(playerHP<=0 || enemyHP<=0)return
-
-let enemy = enemyMove()
-
-let result = judge(enemy,player)
-
-let text = "敵: "+name[enemy]+"<br>あなた: "+name[player]+"<br>"
-
-if(result==="win"){
-enemyHP--
-text += "<b>読み勝ち！敵HP-1</b>"
+let count={
+attack:0,
+defense:0,
+evade:0,
+grab:0,
+special:0
 }
 
-if(result==="damage"){
-playerHP--
-text += "<b>被弾…HP-1</b>"
+playerHistory.forEach(a=>count[a]++)
+
+let predicted = Object.keys(count).reduce((a,b)=>count[a]>count[b]?a:b)
+
+return counterMove(predicted)
+
 }
 
-if(result==="dead"){
-playerHP = 0
-text += "<b>即死！！</b>"
+function counterMove(move){
+
+switch(move){
+
+case "attack":
+return "attack"
+
+case "defense":
+return "grab"
+
+case "evade":
+return "special"
+
+case "grab":
+return "attack"
+
+case "special":
+return "defense"
+
 }
 
-update()
-
-if(enemyHP<=0){
-text += "<br><h2>勝利！</h2>"
 }
 
-if(playerHP<=0){
-text += "<br><h2>敗北…</h2>"
-}
-
-document.getElementById("log").innerHTML = text
+function randomMove(){
+return actions[Math.floor(Math.random()*5)]
 }
 
 function judge(enemy,player){
@@ -138,9 +159,58 @@ return "dead"
 
 }
 
-function update(){
-document.getElementById("playerHP").textContent = playerHP
-document.getElementById("enemyHP").textContent = enemyHP
+function play(player){
+
+if(playerHP<=0)return
+
+playerHistory.push(player)
+
+let enemy = enemyAI()
+
+let result = judge(enemy,player)
+
+let battleText = "🤺 "+name[player]+"　VS　"+name[enemy]+" 👾"
+
+document.getElementById("battle").textContent=battleText
+
+let log = document.getElementById("log")
+
+let line = document.createElement("div")
+
+if(result==="win"){
+
+line.innerHTML="🔥 読み勝ち！即勝利！"
+log.prepend(line)
+
+setTimeout(()=>{
+alert("YOU WIN")
+location.reload()
+},500)
+
+return
+}
+
+if(result==="damage"){
+playerHP--
+line.innerHTML="💥 被弾 HP-1"
+}
+
+if(result==="dead"){
+playerHP=0
+line.innerHTML="☠ 即死"
+}
+
+log.prepend(line)
+
+document.getElementById("php").textContent=playerHP
+
+if(playerHP<=0){
+setTimeout(()=>{
+alert("YOU LOSE")
+location.reload()
+},500)
+}
+
 }
 
 </script>
