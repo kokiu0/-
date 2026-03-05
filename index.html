@@ -14,8 +14,41 @@ text-align:center;
 overflow-x:hidden;
 }
 
-h1{
-letter-spacing:3px;
+/* ルール画面 */
+
+#rules{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#000;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:2000;
+}
+
+#rules pre{
+background:#111;
+padding:20px;
+border:1px solid #444;
+text-align:left;
+}
+
+button{
+padding:10px 18px;
+margin:5px;
+font-size:16px;
+cursor:pointer;
+background:#222;
+color:white;
+border:1px solid #555;
+}
+
+button:hover{
+background:#444;
 }
 
 .hp{
@@ -29,26 +62,12 @@ margin:40px;
 transition:0.2s;
 }
 
-button{
-padding:12px 20px;
-margin:6px;
-font-size:16px;
-cursor:pointer;
-background:#222;
-color:white;
-border:1px solid #555;
-}
-
-button:hover{
-background:#444;
-}
-
 #log{
-margin-top:20px;
 height:200px;
 overflow:auto;
 border:1px solid #333;
 padding:10px;
+margin-top:20px;
 }
 
 /* カットイン */
@@ -64,10 +83,8 @@ align-items:center;
 justify-content:center;
 font-size:80px;
 font-weight:bold;
-color:white;
-pointer-events:none;
 opacity:0;
-transition:0.3s;
+pointer-events:none;
 z-index:999;
 }
 
@@ -94,7 +111,7 @@ height:200%;
 background:linear-gradient(
 120deg,
 transparent 45%,
-rgba(255,255,255,0.9) 50%,
+white 50%,
 transparent 55%
 );
 opacity:0;
@@ -124,10 +141,60 @@ opacity:0;
 
 }
 
+/* 必殺スロー */
+
+.slow{
+animation:slowMotion 1s ease-out;
+}
+
+@keyframes slowMotion{
+
+0%{transform:scale(1)}
+30%{transform:scale(1.1)}
+60%{transform:scale(1.05)}
+100%{transform:scale(1)}
+
+}
+
 </style>
 </head>
 
 <body>
+
+<div id="rules">
+
+<h2>ゲームルール</h2>
+
+<pre>
+敵：通常攻撃
+勝ち → 防御
+HP-1 → 回避
+即死 → 掴み / 必殺
+
+敵：防御
+勝ち → 掴み
+HP-1 → 防御 / 回避
+即死 → 攻撃 / 必殺
+
+敵：回避
+勝ち → 必殺
+HP-1 → 防御 / 回避 / 掴み
+即死 → 攻撃
+
+敵：掴み
+勝ち → 攻撃 / 必殺
+HP-1 → 回避 / 掴み
+即死 → 防御
+
+敵：必殺
+勝ち → 防御
+HP-1 → 必殺
+即死 → 回避 / 攻撃 / 掴み
+</pre>
+
+<button onclick="startGame()">ゲーム開始</button>
+
+</div>
 
 <h1>一点読みバトル</h1>
 
@@ -168,6 +235,10 @@ special:"必殺"
 }
 
 let history=[]
+
+function startGame(){
+document.getElementById("rules").style.display="none"
+}
 
 function random(){
 return actions[Math.floor(Math.random()*5)]
@@ -263,6 +334,18 @@ c.className=""
 
 }
 
+function slowMotion(){
+
+let arena=document.getElementById("arena")
+
+arena.classList.add("slow")
+
+setTimeout(()=>{
+arena.classList.remove("slow")
+},1000)
+
+}
+
 function play(player){
 
 if(hp<=0)return
@@ -275,7 +358,11 @@ let result=judge(enemy,player)
 
 let arena=document.getElementById("arena")
 
-arena.textContent="🤺 "+name[player]+"  VS  "+name[enemy]+" 👾"
+arena.textContent="🤺 "+name[player]+" VS "+name[enemy]+" 👾"
+
+if(player==="special" || enemy==="special"){
+slowMotion()
+}
 
 let log=document.getElementById("log")
 
