@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>一点読みバトル</title>
+<style>
+body{
+    background:#111;
+    color:white;
+    font-family:sans-serif;
+    text-align:center;
+}
+
+button{
+    padding:10px 20px;
+    margin:5px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#log{
+    margin-top:20px;
+    font-size:18px;
+    min-height:120px;
+}
+
+.hp{
+    font-size:22px;
+    margin:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>一点読みバトル</h1>
+
+<div class="hp">プレイヤーHP: <span id="playerHP">3</span></div>
+<div class="hp">敵HP: <span id="enemyHP">3</span></div>
+
+<div>
+<button onclick="play('attack')">通常攻撃</button>
+<button onclick="play('defense')">防御</button>
+<button onclick="play('evade')">回避</button>
+<button onclick="play('grab')">掴み</button>
+<button onclick="play('special')">必殺技</button>
+</div>
+
+<div id="log"></div>
+
+<script>
+
+let playerHP = 3
+let enemyHP = 3
+
+const actions = ["attack","defense","evade","grab","special"]
+
+const name = {
+attack:"通常攻撃",
+defense:"防御",
+evade:"回避",
+grab:"掴み",
+special:"必殺技"
+}
+
+function enemyMove(){
+return actions[Math.floor(Math.random()*actions.length)]
+}
+
+function play(player){
+
+if(playerHP<=0 || enemyHP<=0)return
+
+let enemy = enemyMove()
+
+let result = judge(enemy,player)
+
+let text = "敵: "+name[enemy]+"<br>あなた: "+name[player]+"<br>"
+
+if(result==="win"){
+enemyHP--
+text += "<b>読み勝ち！敵HP-1</b>"
+}
+
+if(result==="damage"){
+playerHP--
+text += "<b>被弾…HP-1</b>"
+}
+
+if(result==="dead"){
+playerHP = 0
+text += "<b>即死！！</b>"
+}
+
+update()
+
+if(enemyHP<=0){
+text += "<br><h2>勝利！</h2>"
+}
+
+if(playerHP<=0){
+text += "<br><h2>敗北…</h2>"
+}
+
+document.getElementById("log").innerHTML = text
+}
+
+function judge(enemy,player){
+
+switch(enemy){
+
+case "attack":
+if(player==="defense") return "win"
+if(player==="attack"||player==="evade") return "damage"
+return "dead"
+
+case "defense":
+if(player==="grab") return "win"
+if(player==="defense"||player==="evade") return "damage"
+return "dead"
+
+case "evade":
+if(player==="special") return "win"
+if(player==="defense"||player==="evade"||player==="grab") return "damage"
+return "dead"
+
+case "grab":
+if(player==="special"||player==="attack") return "win"
+if(player==="evade"||player==="grab") return "damage"
+return "dead"
+
+case "special":
+if(player==="defense") return "win"
+if(player==="special") return "damage"
+return "dead"
+
+}
+
+}
+
+function update(){
+document.getElementById("playerHP").textContent = playerHP
+document.getElementById("enemyHP").textContent = enemyHP
+}
+
+</script>
+
+</body>
+</html>
